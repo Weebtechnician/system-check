@@ -1,0 +1,34 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Logs
+*.log
+
+# Configs and secrets
+config.json
+*.ini
+.env
+
+# Systemd service and timer files (if generated locally)
+*.service
+*.timer
+
+# Output or temp files
+*.out
+*.tmp
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
