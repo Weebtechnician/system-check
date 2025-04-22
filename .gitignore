@@ -7,8 +7,9 @@ __pycache__/
 env/
 venv/
 
-# Logs
-*.log
+# Ignore log files but keep the directory
+logs/*
+!logs/.gitkeep
 
 # Configs and secrets
 config.json
