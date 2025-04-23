@@ -1,5 +1,6 @@
 import configparser
 import os
+import time
 
 # import psutil
 import subprocess
@@ -27,30 +28,41 @@ logging.basicConfig(
 
 def check_connection():
     global config
+    retry_count = 0
+    max_retry = 5
 
-    result = subprocess.run(
-        ["ping", "-c", "1", f"{config['network']['ping_target']}"],
-        capture_output=True,
-        text=True,
-    )
-    logger.info("NETWORK STATUS")
-    logger.debug(f"Command: {' '.join(result.args)}")
+    while retry_count < max_retry:
+        result = subprocess.run(
+            ["ping", "-c", "1", f"{config['network']['ping_target']}"],
+            capture_output=True,
+            text=True,
+        )
 
-    stdout = None
+        logger.info("NETWORK STATUS")
+        logger.debug(f"Command: {' '.join(result.args)}")
+        logger.debug(f"Status code: {result.returncode}")
 
-    for line in result.stdout.splitlines():
-        if "bytes from" in line:
-            stdout = line
+        if result.returncode == 0:
+            # Grab important line from stdout if it exists
+            stdout = None
+
+            for line in result.stdout.splitlines():
+                if "bytes from" in line:
+                    stdout = line
+                    break
+
+            if stdout is None:
+                stdout = result.stdout.strip()
+
+            logger.debug(stdout)
             break
 
-    if stdout is None:
-        stdout = result.stdout.strip()
-
-    logger.debug(stdout)
-    logger.debug(f"Status code: {result.returncode}")
-
-    if result.returncode != 0:
         logger.error(f"Ping failed: {result.stderr.strip()}")
+        logger.info(f"Retrying ping. Attempt {retry_count + 1}/{max_retry}.")
+        time.sleep(5 + retry_count * 2)
+        retry_count += 1
+    else:
+        logger.error("Max retries reached. Sending alert.")
 
 
 # --------------------- SYSTEM ---------------------

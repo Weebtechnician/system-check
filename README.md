@@ -25,45 +25,45 @@ system-check/
 ├── .gitignore          # Git rules
 └── README.md           # You're here
 ```
+
 ## ⚙️ Usage
 
 1. Install dependencies:
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
-```
+    ```bash
+    python -m venv .venv
+    source .venv/bin/activate
+    ```
 
-2. Configure your target in config.ini:
+2. Configure your target in `config.ini`:
 
-```bash
-[network]
-ping_target = 8.8.8.8
-```
+    ```ini
+    [network]
+    ping_target = 8.8.8.8
+    ```
 
 3. Run the script:
 
-``` bash
-python monitor.py
-```
-
+    ```bash
+    python monitor.py
+    ```
 
 ## 📓 Notes
 
-    Create the logs/ directory or include a .gitkeep to track it with Git.
+Create the logs/ directory or include a .gitkeep to track it with Git.
 
-    You can hook this script into a systemd timer or cron job to automate checks.
+You can hook this script into a systemd timer or cron job to automate checks.
 
 ## 🔒 Security Considerations
 
-    Always validate and sanitize dynamic input if you extend this script.
+Always validate and sanitize dynamic input if you extend this script.
 
 ## 📬 Future Features
 
-    System resource monitoring (CPU, disk, memory)
+System resource monitoring (CPU, disk, memory)
 
-    Email alerts via Gmail SMTP
+Email alerts via Gmail SMTP
 
-    Retry logic for flaky connections
+Retry logic for flaky connections
 
-    RTT/latency analysis and alerting
+RTT/latency analysis and alerting
