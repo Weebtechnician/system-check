@@ -3,8 +3,8 @@ import os
 import time
 import smtplib
 import datetime as dt
-
-# import psutil
+import platform
+import psutil
 import subprocess
 import logging
 
@@ -78,8 +78,12 @@ def check_connection():
     max_retry = 5
 
     while retry_count < max_retry:
+        if platform.system() == "Windows":
+            command = ["ping", "-n", "1", f"{config['network']['ping_target']}"]
+        else:
+            command = ["ping", "-c", "1", f"{config['network']['ping_target']}"]
         result = subprocess.run(
-            ["ping", "-c", "1", f"{config['network']['ping_target']}"],
+            command,
             capture_output=True,
             text=True,
         )
@@ -93,7 +97,7 @@ def check_connection():
             stdout = None
 
             for line in result.stdout.splitlines():
-                if "bytes from" in line:
+                if "bytes from" or "Reply from" in line:
                     stdout = line
                     break
 
@@ -120,6 +124,50 @@ def check_connection():
 
 
 # --------------------- SYSTEM CHECKS ---------------------
+def check_system():
+    # CPU
+    psutil.cpu_percent(interval=None)
+    time.sleep(1)
+    cpu_percent = psutil.cpu_percent(interval=None)
+    if cpu_percent > float(config["thresholds"]["cpu"]):
+        print(get_top_processes("cpu"))
+
+
+def get_top_processes(metric, top_n=5):
+    process_list = []
+    # Prime CPU percent for all processes
+    for proc in psutil.process_iter():
+        try:
+            proc.cpu_percent(interval=None)
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+
+    time.sleep(1)
+
+    for proc in psutil.process_iter():
+        try:
+            with proc.oneshot():
+                info = {
+                    "pid": proc.pid,
+                    "name": proc.name(),
+                    "username": proc.username(),
+                }
+
+                if metric == "cpu":
+                    info["value"] = proc.cpu_percent(interval=None)
+                elif metric == "memory":
+                    info["value"] = proc.memory_info.rss / (1024 * 1024)
+                elif metric == "io":
+                    io = proc.io_counters()
+                    info["value"] = io.read_bytes + io.write_bytes
+                else:
+                    continue
+
+                process_list.append(info)
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            continue
+    return sorted(process_list, key=lambda p: p["value"], reverse=True)[:top_n]
 
 
 check_connection()
+check_system()
